@@ -1,32 +1,51 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import '../controller/profile_page_controller.dart';
 import 'package:latihan_crud_firebase/core.dart';
-import 'package:get/get.dart';
 
-class ProfilePageView extends StatelessWidget {
-  const ProfilePageView({Key? key}) : super(key: key);
+class ProfilePageView extends StatefulWidget {
+  const ProfilePageView({super.key});
+
+  @override
+  State<ProfilePageView> createState() => _ProfilePageViewState();
+}
+
+class _ProfilePageViewState extends State<ProfilePageView> {
+
+
+  String user = FirebaseAuth.instance.currentUser!.email.toString();
+
 
   @override
   Widget build(BuildContext context) {
-    return GetBuilder<ProfilePageController>(
-      init: ProfilePageController(),
-      builder: (controller) {
-        controller.view = this;
-
-        return Scaffold(
-          appBar: AppBar(
-            title: const Text("ProfilePage"),
-          ),
-          body: SingleChildScrollView(
-            child: Container(
-              padding: const EdgeInsets.all(10.0),
-              child: Column(
-                children: const [],
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("Profile Page"),
+        leading: IconButton(
+            onPressed: () => Navigator.pop(context),
+            icon: const Icon(Icons.arrow_back_ios_new_outlined)),
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(user, style: const TextStyle(fontSize: 20)),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                foregroundColor: Colors.white, backgroundColor: Colors.red,
               ),
-            ),
-          ),
-        );
-      },
+              onPressed: () {
+              },
+              child: const Text("Sign Out"),
+            )
+          ],
+        )
+      ),
     );
+  }
+
+  signOut() async {
+    await FirebaseAuth.instance.signOut();
+    Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const LoginPageView()));
   }
 }

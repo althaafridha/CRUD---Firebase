@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:latihan_crud_firebase/state_util.dart';
-import '../../add_data_page/view/add_data_page_view.dart';
-import '../view/home_page_view.dart';
+import 'package:latihan_crud_firebase/core.dart';
 
 class HomePageController extends State<HomePageView> implements MvcController {
   static late HomePageController instance;
@@ -22,4 +20,9 @@ class HomePageController extends State<HomePageView> implements MvcController {
   goToAddDataPage() {
     Navigator.push(context, MaterialPageRoute(builder: (_) => const AddDataPageView()));
   }
+
+  goToProfilePage(){
+    Navigator.push(context, MaterialPageRoute(builder: (_) => const ProfilePageView()));
+  }
+
 }

@@ -6,6 +6,7 @@
         "register_page",
         "home_page",
         "add_data_page",
+        "edit_data_page",
         "profile_page"
     ]
 }

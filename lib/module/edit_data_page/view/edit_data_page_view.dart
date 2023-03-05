@@ -6,21 +6,26 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:latihan_crud_firebase/core.dart';
 
-class AddDataPageView extends StatefulWidget {
-  const AddDataPageView({super.key});
+class EditPageDataView extends StatefulWidget {
+
+  final dynamic data;
+  final String id;
+
+    const EditPageDataView({Key? key, required this.data, required this.id}) : super(key: key);
 
   @override
-  State<AddDataPageView> createState() => _AddDataPageViewState();
+  State<EditPageDataView> createState() => _EditPageDataViewState();
 }
 
-class _AddDataPageViewState extends State<AddDataPageView> {
+class _EditPageDataViewState extends State<EditPageDataView> {
   File? _image;
   late User? _user;
   late StreamSubscription<User?> _userSubscription;
 
   final picker = ImagePicker();
-  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final GlobalKey<FormState> _key = GlobalKey<FormState>();
   Future getImage() async {
     final pickedFile = await picker.pickImage(
         source: ImageSource.gallery, maxWidth: 1080, maxHeight: 1920);
@@ -30,12 +35,15 @@ class _AddDataPageViewState extends State<AddDataPageView> {
     });
   }
 
-  final controllerTitle = TextEditingController();
-  final controllerDeskription = TextEditingController();
-  final controllerPrice = TextEditingController();
+  var controllerTitle = TextEditingController();
+  var controllerDeskription = TextEditingController();
+
   @override
   void initState() {
     super.initState();
+    controllerDeskription.text = widget.data['description'];
+    controllerTitle.text = widget.data['title'];
+
     _userSubscription = FirebaseAuth.instance.authStateChanges().listen((user) {
       setState(() {
         _user = user;
@@ -47,20 +55,17 @@ class _AddDataPageViewState extends State<AddDataPageView> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.blue,
-        title: const Text('Add Data'),
-        leading: IconButton(
-          onPressed: () => Navigator.pop(context),
-          icon: const Icon(Icons.arrow_back_ios_new_outlined)),
+        title: const Text("Edit Data"),
+        leading: const Icon(Icons.arrow_back_ios_new_outlined),
       ),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Form(
-            key: _formKey,
+            key: _key,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+              children: <Widget>[
                 const SizedBox(height: 16.0),
                 GestureDetector(
                   onTap: getImage,
@@ -72,11 +77,14 @@ class _AddDataPageViewState extends State<AddDataPageView> {
                       borderRadius: BorderRadius.circular(10.0),
                     ),
                     child: _image == null
-                        ? const Icon(
-                            Icons.camera_alt,
-                            color: Colors.grey,
-                            size: 50.0,
-                          )
+                        ? (widget.data['image'] == null
+                            ? const Icon(
+                                Icons.camera_alt,
+                                color: Colors.grey,
+                                size: 50.0,
+                              )
+                            : Image.network(widget.data['image'],
+                                fit: BoxFit.cover))
                         : Image.file(_image!, fit: BoxFit.cover),
                   ),
                 ),
@@ -129,7 +137,7 @@ class _AddDataPageViewState extends State<AddDataPageView> {
                   width: MediaQuery.of(context).size.width,
                   child: ElevatedButton(
                     onPressed: () async {
-                      if (_formKey.currentState!.validate() &&
+                      if (_key.currentState!.validate() &&
                           _image != null &&
                           _user != null) {
                         FirebaseStorage storage = FirebaseStorage.instance;
@@ -147,7 +155,9 @@ class _AddDataPageViewState extends State<AddDataPageView> {
                         CollectionReference content =
                             firestore.collection('data');
 
-                        await content.add({
+                        DocumentReference<Map<String, dynamic>> editContent =
+                            firestore.collection("data").doc(widget.id);
+                        await editContent.update({
                           'image': imageUrl,
                           'title': controllerTitle.text,
                           'description': controllerDeskription.text,
@@ -164,12 +174,23 @@ class _AddDataPageViewState extends State<AddDataPageView> {
                         );
                       }
                     },
-                    style: ElevatedButton.styleFrom(primary: Colors.blue),
-                    child: const Text('Add Data'),
+                    style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
+                    child: const Text('Update Data'),
                   ),
                 ),
                 const SizedBox(
                   height: 20.0,
+                ),
+                 SizedBox(
+                  height: 50,
+                  width: MediaQuery.of(context).size.width,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      showAlertDialog(context, widget.id);
+                    },
+                    style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                    child: const Text('Delete Data'),
+                  ),
                 ),
               ],
             ),
@@ -183,5 +204,41 @@ class _AddDataPageViewState extends State<AddDataPageView> {
   void dispose() {
     super.dispose();
     _userSubscription.cancel();
+  }
+
+  showAlertDialog(BuildContext context, String id) {
+    Widget cancelButton = TextButton(
+      child: const Text("Cancel"),
+      onPressed: () {
+        Navigator.pop(context);
+      },
+    );
+    Widget continueButton = TextButton(
+      child: const Text("Yes"),
+      onPressed: () async {
+        await FirebaseFirestore.instance
+            .collection('data')
+            .doc(id)
+            .delete();
+        Navigator.push(
+            context, MaterialPageRoute(builder: (_) => const HomePageView()));
+      },
+    );
+
+    AlertDialog alert = AlertDialog(
+      title: const Text("Delete Note"),
+      content: const Text("Are you sure you want to delete this note?"),
+      actions: [
+        cancelButton,
+        continueButton,
+      ],
+    );
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return alert;
+      },
+    );
   }
 }
