@@ -4,11 +4,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../home_page/view/home_page_view.dart';
-import '../view/edit_data_page_view.dart';
 
 class EditDataPageController extends GetxController {
-   String? basename;
+  String? basename;
   TextEditingController title = TextEditingController();
   TextEditingController deskripsi = TextEditingController();
   TextEditingController price = TextEditingController();
@@ -25,6 +23,7 @@ class EditDataPageController extends GetxController {
     await FirebaseFirestore.instance.collection('data').doc(id).update({
       'title': title,
       'deskripsi': deskripsi,
+      'price': price,
       'image': imageUrl,
     });
   }
@@ -35,7 +34,7 @@ class EditDataPageController extends GetxController {
     }
 
     Reference ref =
-        FirebaseStorage.instance.ref().child('images').child((image.path));
+        FirebaseStorage.instance.ref().child('image').child((image.path));
     UploadTask uploadTask = ref.putFile(image);
     TaskSnapshot storageTaskSnapshot = await uploadTask;
     String imageUrl = await storageTaskSnapshot.ref.getDownloadURL();

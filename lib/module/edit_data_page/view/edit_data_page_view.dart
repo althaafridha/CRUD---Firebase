@@ -6,7 +6,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:latihan_crud_firebase/core.dart';
 
 class EditPageDataView extends StatefulWidget {
 
@@ -37,7 +36,6 @@ class _EditPageDataViewState extends State<EditPageDataView> {
 
   var controllerTitle = TextEditingController();
   var controllerDeskription = TextEditingController();
-
   @override
   void initState() {
     super.initState();
@@ -55,8 +53,7 @@ class _EditPageDataViewState extends State<EditPageDataView> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Edit Data"),
-        leading: const Icon(Icons.arrow_back_ios_new_outlined),
+        title: const Text('Edit Data'),
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -132,7 +129,7 @@ class _EditPageDataViewState extends State<EditPageDataView> {
                   height: 16.0,
                 ),
                 const SizedBox(height: 16.0),
-                SizedBox(
+                Container(
                   height: 50,
                   width: MediaQuery.of(context).size.width,
                   child: ElevatedButton(
@@ -143,7 +140,7 @@ class _EditPageDataViewState extends State<EditPageDataView> {
                         FirebaseStorage storage = FirebaseStorage.instance;
                         Reference ref = storage
                             .ref()
-                            .child("${DateTime.now()}.jpg");
+                            .child(DateTime.now().toString() + ".jpg");
                         UploadTask uploadTask = ref.putFile(_image!);
                         TaskSnapshot taskSnapshot =
                             await uploadTask.whenComplete(() => null);
@@ -181,17 +178,26 @@ class _EditPageDataViewState extends State<EditPageDataView> {
                 const SizedBox(
                   height: 20.0,
                 ),
-                 SizedBox(
+                Container(
                   height: 50,
                   width: MediaQuery.of(context).size.width,
                   child: ElevatedButton(
-                    onPressed: () {
-                      showAlertDialog(context, widget.id);
+                    onPressed: () async {
+                      FirebaseFirestore firestore =
+                          FirebaseFirestore.instance;
+                      CollectionReference content =
+                          firestore.collection('data');
+
+                      DocumentReference<Map<String, dynamic>> editContent =
+                          firestore.collection("data").doc(widget.id);
+                      await editContent.delete();
+
+                      Navigator.pop(context);
                     },
                     style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
                     child: const Text('Delete Data'),
                   ),
-                ),
+                )
               ],
             ),
           ),
@@ -204,41 +210,5 @@ class _EditPageDataViewState extends State<EditPageDataView> {
   void dispose() {
     super.dispose();
     _userSubscription.cancel();
-  }
-
-  showAlertDialog(BuildContext context, String id) {
-    Widget cancelButton = TextButton(
-      child: const Text("Cancel"),
-      onPressed: () {
-        Navigator.pop(context);
-      },
-    );
-    Widget continueButton = TextButton(
-      child: const Text("Yes"),
-      onPressed: () async {
-        await FirebaseFirestore.instance
-            .collection('data')
-            .doc(id)
-            .delete();
-        Navigator.push(
-            context, MaterialPageRoute(builder: (_) => const HomePageView()));
-      },
-    );
-
-    AlertDialog alert = AlertDialog(
-      title: const Text("Delete Note"),
-      content: const Text("Are you sure you want to delete this note?"),
-      actions: [
-        cancelButton,
-        continueButton,
-      ],
-    );
-
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return alert;
-      },
-    );
   }
 }

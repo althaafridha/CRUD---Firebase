@@ -35,6 +35,7 @@ class _ProfilePageViewState extends State<ProfilePageView> {
                 foregroundColor: Colors.white, backgroundColor: Colors.red,
               ),
               onPressed: () {
+                signOut();
               },
               child: const Text("Sign Out"),
             )

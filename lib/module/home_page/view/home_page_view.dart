@@ -60,7 +60,7 @@ class HomePageView extends StatefulWidget {
                             onTap: () => Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                    builder: (_) => EditPageDataView(data: data, id: data.id))),
+                                    builder: (_) => EditPageDataView(data: data, id: data.id,))),
                             child: Container(
                               margin: const EdgeInsets.only(bottom: 10),
                               decoration: BoxDecoration(
